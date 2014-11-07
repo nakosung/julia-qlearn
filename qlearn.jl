@@ -9,10 +9,8 @@ module QLearn
 		Instance(actions,eps=0.2,alpha=0.1,gamma=0.9) = new(eps,alpha,gamma,actions,Dict{Any,Float32}())
 	end
 
-	getQ(I::Instance, state, action, default_value = 0) = (k = (state,action); haskey(I.q,k) ? I.q[k] : default_value)
-
 	function learnQ(I::Instance, state, action, reward, value) 
-		oldv = getQ(I,state,action,())
+		oldv = get(I.q,(state,action),())
 		if oldv == ()
 			I.q[(state,action)] = reward
 		else
@@ -25,7 +23,7 @@ module QLearn
 		if rand() < self.epsilon
 			action = self.actions[rand(1:end)]
 		else
-			q = [getQ(self,state,a) for a in self.actions]			
+			q = [get(self.q,(state,a),0) for a in self.actions]			
 			maxQ,_ = findmax(q)
 			c = count((v)->v==maxQ,q)
 			local i
@@ -41,7 +39,7 @@ module QLearn
 	end
 
 	function learn(self::Instance, state1, action1, reward, state2)
-		maxqnew, _ = findmax([getQ(self,state2,a) for a in self.actions])
+		maxqnew, _ = findmax([get(self.q,(state2,a),0) for a in self.actions])
 		learnQ(self,state1,action1,reward,reward + self.gamma * maxqnew)
 	end
 
